@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+# coding: utf-8
+#
+# Copyright © 2016 Vista Higher Learning, Inc.
+#
+# This file is part of passenger_status_check.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+require 'barman_check'
+require 'optparse'
+require 'pp'
+
+
+# Default thresholds
+# - backup count: 3
+# - backup age (hours): 25
+
+options = {
+  formatter: :barman_check_mk,
+  thresholds: {
+    bu_count: 3,
+    bu_age: 0
+  }
+}
+
+OptionParser.new do |opts|
+  opts.banner = 'Usage: passenger_status_check [options]'
+
+  opts.on_tail('-v', '--version', 'Show version') do
+    puts "barman_check#{BarmanCheck::VERSION}"
+    exit
+  end
+
+  opts.on('-f', '--formatter=f', 'Specify formatter') do |f|
+    options[:formatter] = f
+  end
+
+  opts.on('--bc', '--backup-count=bc', 'Specify required number of backups') do |bc|
+    options[:thresholds][:bu_count] = bc
+  end
+
+  opts.on('--ba', '--backup-age=ba', 'Specify minimum backup age in hours') do |ba|
+    options[:thresholds][:bu_age] = ba
+  end
+
+end.parse!
+
+#how do I read in 2 files?
+check_data = ARGF.read.chomp
+
+print barman_check = BarmanCheck.run(options[:formatter],
+                                                  options[:thresholds],
+                                                  check_data, list_data)

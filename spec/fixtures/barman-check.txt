@@ -1,0 +1,11 @@
+Server main:	
+      ssh: OK 
+      PostgreSQL: OK 
+      archive_mode: OK 
+      archive_command:  OK 
+      continuous archiving: OK 
+      directories: OK 
+      retention policy settings: OK 
+      backup maximum age: OK (interval provided: 1 day, latest backup age: 11 hours, 48 minutes) 
+      compression settings: OK 
+      minimum redundancy requirements: OK (have 3 backups, expected at least 1)

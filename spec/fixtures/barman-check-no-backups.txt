@@ -1,0 +1,10 @@
+Server main:	
+      ssh: OK 
+      PostgreSQL: OK 
+      archive_mode: OK 
+      archive_command:  OK 
+      continuous archiving: OK 
+      directories: OK 
+      retention policy settings: OK 
+      compression settings: OK 
+      minimum redundancy requirements: FAILED (have 0 backups, expected at least 1)
