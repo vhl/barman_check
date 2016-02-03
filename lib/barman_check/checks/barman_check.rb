@@ -20,7 +20,10 @@
 module BarmanCheck
   module Checks
     class BarmanCheck
-      OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3 
+      OK = 0
+      WARNING = 1
+      CRITICAL = 2
+      UNKNOWN = 3
 
       def initialize(parser, thresholds)
         @parser = parser
@@ -56,7 +59,7 @@ module BarmanCheck
           CRITICAL
         end
       end
-      
+
       def backup_growth_check
         if @parser.backups_growing
           OK
@@ -64,18 +67,19 @@ module BarmanCheck
           CRITICAL
         end
       end
-      
+
       def recent_backup_failed_check
         if @parser.recent_backup_failed
           CRITICAL
         else
           OK
         end
-      end 
-      
+      end
     end
   end
 end
+
+# rubocop:disable all
 #require 'barman_check/parser'
 #db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
 #            "archive_mode: OK ",
@@ -110,3 +114,4 @@ end
 #puts " Backup file count check : #{barman_check.backup_file_count_check} "
 #puts " Backup growth check : #{barman_check.backup_growth_check} "
 #puts " Backup age check : #{barman_check.backup_age_check} "
+# rubocop:enable all

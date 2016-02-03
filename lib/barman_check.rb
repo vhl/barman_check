@@ -21,9 +21,7 @@ require 'barman_check/version'
 require 'barman_check/parser'
 require 'barman_check/formatters/barman_check_mk'
 
-
 module BarmanCheck
-
   def self.run(formatter_name, thresholds, status_data, list_data)
     parser = BarmanCheck::Parser.new(status_data, list_data)
     formatter = formatter_class(formatter_name).new(parser, thresholds)
@@ -32,7 +30,7 @@ module BarmanCheck
 
   def self.formatter_class(formatter)
     klass = formatter.to_s.split('_').map(&:capitalize).join
-    ["BarmanCheck", "Formatters", klass].inject(Object) do |constant, name|
+    ['BarmanCheck', 'Formatters', klass].inject(Object) do |constant, name|
       constant.const_get(name)
     end
   end

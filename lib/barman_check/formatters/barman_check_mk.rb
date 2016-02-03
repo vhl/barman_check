@@ -23,9 +23,11 @@ module BarmanCheck
   module Formatters
     class BarmanCheckMk
       attr_reader :parser
-      
-      OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3 
-      STATUS_LOOKUP = { 0 => "OK", 1 => "WARNING", 2 => "CRITICAL"}
+      STATUS_LOOKUP = { 0 => 'OK', 1 => 'WARNING', 2 => 'CRITICAL' }.freeze
+      OK = 0
+      WARNING = 1
+      CRITICAL = 2
+      UNKNOWN = 3
 
       def initialize(parser, thresholds)
         @parser = parser
@@ -46,59 +48,55 @@ module BarmanCheck
       def backup_status
         # first check for failed states, in order of importance
         collect_failure_status
-        # if we get to here and the status is not CRITICAL we might 
+        # if we get to here and the status is not CRITICAL we might
         # need to override it with the WARNING status for backup count
         file_count_status = barman_check.backup_file_count_check
         if file_count_status > OK
           # only change the output status if file count status is higher alert
-          if file_count_status > @status
-            @status = file_count_status
-          end
+          @status = file_count_status if file_count_status > @status
           # always report expected status for file count
           # when it is CRITICAL or WARNING
-          @status_string << "expected #{@thresholds[:bu_count]} backups found #{@parser.num_backups}" 
+          @status_string << "expected #{@thresholds[:bu_count]} backups found #{@parser.num_backups}"
         else
-        # add backup file count
-        @status_string << "backups=#{@parser.num_backups}"
+          # add backup file count
+          @status_string << "backups=#{@parser.num_backups}"
         end
         # only report age of backups if there is at least one
         puts "in backup_status num backups #{@parser.num_backups}"
         puts "in backup_status latest backup age #{@parser.latest_bu_age}"
         if @parser.num_backups > 0
-          @status_string << " backup_age=#{@parser.latest_bu_age < @thresholds[:bu_age] ? "OK" : @parser.latest_bu_age}"
+          @status_string << " backup_age=#{@parser.latest_bu_age < @thresholds[:bu_age] ? 'OK' : @parser.latest_bu_age}"
         end
         "#{@status} Barman_#{@parser.db_name}_status - #{STATUS_LOOKUP[@status]} #{@status_string}\n"
       end
-      
+
       def backup_growth
         growth_status = barman_check.backup_growth_check
-        report_string = "#{STATUS_LOOKUP[growth_status]}" 
-        if growth_status > OK
-          report_string << " bad growth trend"
-        end
+        report_string = "#{STATUS_LOOKUP[growth_status]}"
+        report_string << ' bad growth trend' if growth_status > OK
         "#{growth_status} Barman_#{@parser.db_name}_growth - #{report_string}\n"
       end
-      
+
       def collect_failure_status
         # check for failed states, in order of importance
-        @status_string = ""
+        @status_string = ''
         @status = OK
         if barman_check.bad_status_check == CRITICAL
           @status = barman_check.bad_status_check
-          @status_string = @parser.bad_statuses * ","
-          @status_string << " "
+          @status_string = @parser.bad_statuses * ','
+          @status_string << ' '
         elsif barman_check.backup_file_count_check == CRITICAL
           @status = barman_check.backup_file_count_check
-          @status_string = "expected #{@thresholds[:bu_count]} backups found #{@parser.num_backups}" 
+          @status_string = "expected #{@thresholds[:bu_count]} backups found #{@parser.num_backups}"
         elsif barman_check.backup_age_check == CRITICAL
           @status = barman_check.backup_age_check
         end
       end
-      
     end
   end
 end
 
+# rubocop:disable all
 #require 'barman_check/parser'
 #db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
 #            "archive_mode: OK ",
@@ -129,3 +127,4 @@ end
 #check_mk = BarmanCheck::Formatters::BarmanCheckMk.new(parser,thresholds)
 #check_mk.barman_check
 #puts "Barman check results: \n#{check_mk.output}"
+# rubocop:enable all

@@ -1,4 +1,4 @@
-# coding: utf-8
+   #coding: utf-8
 #
 # Copyright © 2016 Vista Higher Learning, Inc.
 #
@@ -36,15 +36,13 @@ module BarmanCheck
       server_info = @db_check_data.first
       # line looks like this "Server main: ", 
       # where main is the db name we want to parse out
-      rest_of_line,server_name_info = server_info.split(" ")
-      @db_name, unwanted_chars = server_name_info.split(":")
+      _rest_of_line,server_name_info = server_info.split(' ')
+      @db_name, _unwanted_chars = server_name_info.split(':')
       @bad_statuses = []
       # store anything that reports as failed in the bad status array
       @db_check_data[1..-1].each do |status_line| 
-        feature, status, part1, part2 = status_line.split(":")
-        if status !~ /OK/
-          @bad_statuses.push(feature.strip)
-        end
+        feature, status, _part1, _part2 = status_line.split(':')
+        @bad_statuses.push(feature.strip) if status !~ /OK/
       end 
        puts "end parse_check_data server name: #{db_name}"
     end
@@ -89,7 +87,7 @@ module BarmanCheck
         if @db_backups_data.first.include?(FAILED)
             @recent_backup_failed = true
         else
-          name, datetime_recent_file_string, throw_away = @db_backups_data.first.split("-")
+          name, datetime_recent_file_string, throw_away = @db_backups_data.first.split('-')
           datetime_most_recent = DateTime.parse(datetime_recent_file_string)
           now = DateTime.now
           # figure out how old the latest backup is in hours
@@ -116,11 +114,12 @@ module BarmanCheck
         last_size = backup
       end
       puts "Backups growing #{backups_growing}"
-      return backups_growing
+      backups_growing
     end
   end
 end
 
+# rubocop:disable all
 #db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
 #            "archive_mode: OK ",
 #            "archive_command:  OK ",
@@ -160,4 +159,4 @@ end
 #db_list = ["main 20160119T000001 - Tue Feb  1 00:00:49 2016 - Size: 28.2 GiB - WAL Size: 33.3 MiB",
 #           "main 20160118T000001 - Mon Jan 18 00:00:43 2016 - Size: 27.9 GiB - WAL Size: 102.3 MiB"]
 #parser = BarmanCheck::Parser.new(db_check, db_list)
-
+# rubocop:enable all
