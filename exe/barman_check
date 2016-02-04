@@ -22,7 +22,6 @@ require 'barman_check'
 require 'optparse'
 require 'pp'
 
-
 # Default thresholds
 # - backup count: 3
 # - backup age (hours): 25
@@ -31,7 +30,7 @@ options = {
   formatter: :barman_check_mk,
   thresholds: {
     bu_count: 3,
-    bu_age: 0
+    bu_age: 25
   }
 }
 
@@ -60,11 +59,15 @@ end.parse!
 # get input from both barman commands at once and separate into 
 # 2 sets to pass to the check program
 barman_output_data = ARGF.read.chomp
-# barman commands output is delineated by "FILE_DELIMITER"
-check_data, list_data = barman_output_data.split('FILE_DELIMITER')
-# Problem is this gives me 2 strings, not 2 string arrays
-puts " Check data: #{check_data} List data: #{list_data}"
-#tried ARGF.readlines and got one large array of strings with \t and \n chars
+
+#puts " Input data: #{barman_output_data}"
+a, b = barman_output_data.split('FILE_DELIMITER').map(&:strip)
+#puts " Check data as string:START#{a}"
+#puts " List data as string:START#{b}"
+check_data= a.split(/\n/).map(&:strip)
+list_data =b.split(/\n/).map(&:strip)
+#puts " Check data: #{check_data}"
+#puts " List data: #{list_data}"
 
 print barman_check = BarmanCheck.run(options[:formatter],
                                                   options[:thresholds],
