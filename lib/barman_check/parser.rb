@@ -1,4 +1,4 @@
-   #coding: utf-8
+# coding: utf-8
 #
 # Copyright © 2016 Vista Higher Learning, Inc.
 #
@@ -19,93 +19,87 @@
 require 'date'
 module BarmanCheck
   class Parser
-    FAILED = 'FAILED'
-    attr_reader :db_name, :latest_bu_age, 
+    FAILED = 'FAILED'.freeze
+    attr_reader :db_name, :latest_bu_age,
                 :num_backups, :bad_statuses,
                 :recent_backup_failed
 
     def initialize(db_check_data, db_backup_list_data)
-      @db_check_data= db_check_data # my parsing method assumed lines in a file but what will I be getting from Barman?
+      @db_check_data = db_check_data
       @db_backups_data = db_backup_list_data
-      # should parsing happen now?
+      @recent_backup_failed = false
+      @num_backups = 0
+      @bad_statuses = []
+      @backups = []
       parse_check_data
       parse_backup_list_data
     end
 
     def parse_check_data
       server_info = @db_check_data.first
-      # line looks like this "Server main: ", 
+      # line looks like this "Server main: ",
       # where main is the db name we want to parse out
-      _rest_of_line,server_name_info = server_info.split(' ')
+      _rest_of_line, server_name_info = server_info.split(' ')
       @db_name, _unwanted_chars = server_name_info.split(':')
-      @bad_statuses = []
       # store anything that reports as failed in the bad status array
-      @db_check_data[1..-1].each do |status_line| 
+      @db_check_data[1..-1].each do |status_line|
         feature, status, _part1, _part2 = status_line.split(':')
         @bad_statuses.push(feature.strip) if status !~ /OK/
-      end 
-       puts "end parse_check_data server name: #{db_name}"
+      end
+      puts "end parse_check_data server name: #{db_name}"
     end
-    
+
+    # parses the backup list looking for FAILED backups;
+    # sets num_backups; calls method that figures out
+    # the age of the most recent backup
     def parse_backup_list_data
-      if @db_backups_data.length == 0
-        @num_backups = 0
-      else # process the backup list
-        @backups = []
-        @db_backups_data.each do |bu_line| 
-          if !bu_line.include?('FAILED')
+      unless @db_backups_data.length == 0
+        @db_backups_data.each do |bu_line|
+          unless bu_line.include?('FAILED')
             @backups.push(bu_line.split(/(?:^|\W)Size(?:$|\W)*(\d+.\.\d+)/)[1].to_f)
           end
-          end
+        end
         @num_backups = @backups.size
       end
       determine_backup_age
-      puts "end parse_backup_list_data number of backups #{num_backups}"
     end
-    
+
     # determine age in hours of the most recent backup
-    # if there are any. sets @recent_backup_failed and 
-    # latest_backup_age (the latter only if most recent 
-    # was successful)
+    # if there are any. sets recent_backup_failed and
+    # latest_backup_age (the latter only if most recent
+    # was successful) Precondition: num_backups most have
+    # been calculated prior to calling this method
     def determine_backup_age
-      @recent_backup_failed = false
-      # no need to do anything if there are no backups; 
-      # also assumes num_backups has been calculated first
       if num_backups > 0
-        # first ensure that the most recent is not a failure
-        # open Q. what should happen to latest_backup_age, maybe the check method
-        # will report failure for backup status and not report bu_age?
+        # ensure that the most recent is not a failure
         if @db_backups_data.first.include?(FAILED)
-            @recent_backup_failed = true
+          @recent_backup_failed = true
         else
-          name, datetime_recent_file_string, throw_away = @db_backups_data.first.split('-')
+          _name, datetime_recent_file_string, _throw_away = @db_backups_data.first.split('-')
           datetime_most_recent = DateTime.parse(datetime_recent_file_string)
-          now = DateTime.now
           # figure out how old the latest backup is in hours
-          @latest_bu_age = ((now.to_time - datetime_most_recent.to_time)/60/60).round
+          # NOTE: barman is reporting file dt as UTC
+          @latest_bu_age = ((DateTime.now.to_time.utc - datetime_most_recent.to_time) / 60 / 60).round
         end
       end
       puts "end determine_backup_age latest bu age #{latest_bu_age}"
     end
-    
+
     def backups_growing
       if @num_backups == 0
-        return false
-      end
-      last_size = 0.0
-      backups_growing = true
-      @backups.reverse_each do |backup|
-        #puts " in backups_growing inspect backup: #{backup}"
-        if last_size > backup
-          #puts " in backups_growing previous size #{last_size}"
-          #puts " in backups_growing current size #{backup}"
-          backups_growing = false
-          break
+        false
+      else
+        last_size = 0.0
+        backups_growing = true
+        @backups.reverse_each do |backup|
+          if last_size > backup
+            backups_growing = false
+            break
+          end
+          last_size = backup
         end
-        last_size = backup
+        backups_growing
       end
-      #puts "Backups growing #{backups_growing}"
-      backups_growing
     end
   end
 end

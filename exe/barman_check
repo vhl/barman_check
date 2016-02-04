@@ -57,8 +57,14 @@ OptionParser.new do |opts|
 
 end.parse!
 
-#how do I read in 2 files?
-check_data = ARGF.read.chomp
+# get input from both barman commands at once and separate into 
+# 2 sets to pass to the check program
+barman_output_data = ARGF.read.chomp
+# barman commands output is delineated by "FILE_DELIMITER"
+check_data, list_data = barman_output_data.split('FILE_DELIMITER')
+# Problem is this gives me 2 strings, not 2 string arrays
+puts " Check data: #{check_data} List data: #{list_data}"
+#tried ARGF.readlines and got one large array of strings with \t and \n chars
 
 print barman_check = BarmanCheck.run(options[:formatter],
                                                   options[:thresholds],
