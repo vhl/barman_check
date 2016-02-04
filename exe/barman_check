@@ -61,7 +61,7 @@ end.parse!
 barman_output_data = ARGF.read.chomp
 
 #puts " Input data: #{barman_output_data}"
-a, b = barman_output_data.split('FILE_DELIMITER').map(&:strip)
+a, b = barman_output_data.split("FILE_DELIMITER\n")
 #puts " Check data as string:START#{a}"
 #puts " List data as string:START#{b}"
 check_data= a.split(/\n/).map(&:strip)
