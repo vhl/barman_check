@@ -41,10 +41,9 @@ module BarmanCheck
       end
 
       def backup_age_check
-        @parser.determine_backup_age
         latest_bu_age = @parser.latest_bu_age
-        puts "in backup_age_check latest_bu_age: #{latest_bu_age}"
-        puts "in backup_age_check threshold bu_age: #{@thresholds[:bu_age]}"
+        #puts "in backup_age_check latest_bu_age: #{latest_bu_age}"
+        #puts "in backup_age_check threshold bu_age: #{@thresholds[:bu_age]}"
         if latest_bu_age < @thresholds[:bu_age]
           OK
         else

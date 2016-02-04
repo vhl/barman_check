@@ -51,16 +51,7 @@ module BarmanCheck
       if @db_backups_data.length == 0
         @num_backups = 0
       else # process the backup list
-#        @backups = @db_backups_data.map do |bu_line| 
-#          # new wrinkle is that a failed backup could be in this list -
-#          # its line will look like this:
-#          # main 20160129T220754 - FAILED, so look for "FAILED" before attempting 
-#          # to parse out the size as a float;
-#          if !bu_line.include?(FAILED)
-#            bu_line.split(/(?:^|\W)Size(?:$|\W)*(\d+.\.\d+)/)[1].to_f
-#          end
-#        end
-        @backups = Array.new
+        @backups = []
         @db_backups_data.each do |bu_line| 
           if !bu_line.include?('FAILED')
             @backups.push(bu_line.split(/(?:^|\W)Size(?:$|\W)*(\d+.\.\d+)/)[1].to_f)
@@ -68,14 +59,14 @@ module BarmanCheck
           end
         @num_backups = @backups.size
       end
+      determine_backup_age
       puts "end parse_backup_list_data number of backups #{num_backups}"
     end
     
     # determine age in hours of the most recent backup
-    # still figuring out when this will be called. as it 
-    # stands the number of backups must have been determined before we
-    # call this. currently sets @recent_backup_failed and latest_backup_age 
-    # (the latter only if most recent did not fail)
+    # if there are any. sets @recent_backup_failed and 
+    # latest_backup_age (the latter only if most recent 
+    # was successful)
     def determine_backup_age
       @recent_backup_failed = false
       # no need to do anything if there are no backups; 
@@ -104,16 +95,16 @@ module BarmanCheck
       last_size = 0.0
       backups_growing = true
       @backups.reverse_each do |backup|
-        puts " in backups_growing inspect backup: #{backup}"
+        #puts " in backups_growing inspect backup: #{backup}"
         if last_size > backup
-          puts " in backups_growing previous size #{last_size}"
-          puts " in backups_growing current size #{backup}"
+          #puts " in backups_growing previous size #{last_size}"
+          #puts " in backups_growing current size #{backup}"
           backups_growing = false
           break
         end
         last_size = backup
       end
-      puts "Backups growing #{backups_growing}"
+      #puts "Backups growing #{backups_growing}"
       backups_growing
     end
   end

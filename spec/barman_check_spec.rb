@@ -8,6 +8,8 @@ describe BarmanCheck do
 
   let(:expected_template) { '%1$s Barman_main_status - %2$s %3$s backup_age=%4$s
 %5$s Barman_main_growth - %6$s' }
+  let (:expected_template_no_bu_age) {'%1$s Barman_main_status - %2$s %3$s
+%4$s Barman_main_growth - %5$s'}
   let(:thresholds) do
     test_file_date = DateTime.parse("Tue Jan 26 10:15:49 2016")
     now = DateTime.now
@@ -18,8 +20,8 @@ describe BarmanCheck do
 describe '#check' do
   before do
    # initialize values used by all tests
-   @expected_template_no_bu_age = '%1$s Barman_main_status - %2$s %3$s
-%4$s Barman_main_growth - %5$s'
+   #@expected_template_no_bu_age = '%1$s Barman_main_status - %2$s %3$s
+#%4$s Barman_main_growth - %5$s'
    @formatter  = :barman_check_mk
    # set the threshold for age of file reported in test data plus 1 hour
    # that will cause repeatable happy path using the test data files
@@ -75,14 +77,15 @@ end
     end
 
     it 'generates the correct output for nagios' do
-      # expected output to match age of recent file
+      #2 Barman_main_status - CRITICAL backups=3 backup_age=#{expected_output_age}
+      #0 Barman_main_growth - OK
+      # modify expected output to match age of recent file
+      # from incoming test data
       expected_output_age = thresholds[:bu_age] - 1 
-      #expected = "2 Barman_main_status - CRITICAL backups=3 backup_age=#{expected_output_age}
-      #0 Barman_main_growth - OK"
       expected = expected_template % ['2', 'CRITICAL', 'backups=3', expected_output_age, '0', 'OK']    
       test_thresholds = { bu_count: 3, bu_age: 25 }
       output = BarmanCheck.run(@formatter, test_thresholds, @status_data, @list_data)
-      puts "Latest backup too old output:\n#{output}"
+      puts "TEST:Latest backup too old output:\n#{output}"
       expect(output).to match(expected)
     end
   end
@@ -97,13 +100,14 @@ end
     end
 
     it 'generates the correct output for nagios' do
-      # expected output to match age of recent file
+      #0 Barman_main_status - OK backups=3 backup_age=OK
+      #2 Barman_main_growth - CRITICAL bad growth trend
+      # modify expected output to match age of recent file
+      # from incoming test data
       expected_output_age = thresholds[:bu_age] - 1 
-      #expected = "0 Barman_main_status - OK backups=3 backup_age=OK
-      #2 Barman_main_growth - CRITICAL bad growth trend"
       expected = expected_template % ['0', 'OK', 'backups=3', 'OK', '2', 'CRITICAL bad growth trend']
       output = BarmanCheck.run(@formatter, thresholds, @status_data, @list_data)
-      puts "Latest backup too old output:\n#{output}"
+      puts "TEST:Bad growth trend output:\n#{output}"
       expect(output).to match(expected)
     end
   end
@@ -118,17 +122,15 @@ end
     end
 
     it 'generates the correct output for nagios' do
-      #expected = "2 Barman_main_status - CRITICAL minimum redundancy requirements expected 3 backups found 0
+      #2 Barman_main_status - CRITICAL minimum redundancy requirements expected 3 backups found 0
       #2 Barman_main_growth - CRITICAL bad growth trend
-      expected = @expected_template_no_bu_age % ['2', 'CRITICAL', 'minimum redundancy requirements expected 3 backups found 0', '2', 'CRITICAL bad growth trend']
+      expected = expected_template_no_bu_age % ['2', 'CRITICAL', 'minimum redundancy requirements expected 3 backups found 0', '2', 'CRITICAL bad growth trend']
       output = BarmanCheck.run(@formatter, thresholds, @status_data, @list_data)
-      puts "Latest backup too old output:\n#{output}"
+      puts "TEST:No backups output:\n#{output}"
       expect(output).to match(expected)
     end
   end
   
-   #2 Barman_main_status - CRITICAL ssh,PostgreSQL backups=3 backup_age=OK
-   #2 Barman_main_growth - OK
    context 'status failures reported, but have correct number of backups and a backup that is not stale' do
     before do
       # open a fixture for the optimal path
@@ -139,11 +141,30 @@ end
     end
     
     it 'generates the correct output for nagios' do
-      #0 Barman_main_status - OK backups=3 backup_age=OK
+      #2 Barman_main_status - CRITICAL ssh,PostgreSQL backups=3 backup_age=OK
       #0 Barman_main_growth - OK
-      expected = expected_template % ['0', 'OK', 'backups=3', 'OK', '0', 'OK']
+      expected = expected_template % ['2', 'CRITICAL ssh,PostgreSQL', 'backups=3', 'OK', '0', 'OK']
       output = BarmanCheck.run(@formatter, thresholds, @status_data, @list_data)
-      puts "Happy path output \n#{output}"
+      puts "Status failures output \n#{output}"
+      expect(output).to match(expected)
+    end
+  end
+  
+   #2 Barman_main_status - CRITICAL ssh,minimum redundancy requirements expected 3 backups found 0
+   #2 Barman_main_growth - CRITICAL bad growth trend
+   context 'status failures reported, AND there are no backups' do
+    before do
+      # open a fixture for the optimal path
+      file_path = 'spec/fixtures/barman-check-ssh-bu-failures.txt'
+      @status_data = File.readlines(file_path)
+      file_path = 'spec/fixtures/barman-list-with-failures.txt'
+      @list_data = File.readlines(file_path)
+    end
+    
+    it 'generates the correct output for nagios' do
+      expected = expected_template_no_bu_age % ['2', 'CRITICAL', 'ssh,PostgreSQL,minimum redundancy requirements expected 3 backups found 0', '2', 'CRITICAL bad growth trend']
+      output = BarmanCheck.run(@formatter, thresholds, @status_data, @list_data)
+      puts "Status failures AND all failed backups output \n#{output}"
       expect(output).to match(expected)
     end
   end

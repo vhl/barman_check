@@ -32,6 +32,8 @@ module BarmanCheck
       def initialize(parser, thresholds)
         @parser = parser
         @thresholds = thresholds
+        @status_string = ''
+        @status = OK
       end
 
       def barman_check
@@ -47,12 +49,21 @@ module BarmanCheck
 
       def backup_status
         # first check for failed states, in order of importance
-        collect_failure_status
+        collect_critical_status
+        puts "Finished collecting critical statuses #{@status_string}"
         # if we get to here and the status is not CRITICAL we might
         # need to override it with the WARNING status for backup count
         file_count_status = barman_check.backup_file_count_check
+        report_file_count_status(file_count_status)
+        report_backup_age_status
+      end
+
+      def report_file_count_status(file_count_status)
+        # only change the output status if file count status
+        # is higher alert than what has been reported so far
         if file_count_status > OK
-          # only change the output status if file count status is higher alert
+          # only change the output status if file count status
+          # is higher alert status than reported so far
           @status = file_count_status if file_count_status > @status
           # always report expected status for file count
           # when it is CRITICAL or WARNING
@@ -61,9 +72,10 @@ module BarmanCheck
           # add backup file count
           @status_string << "backups=#{@parser.num_backups}"
         end
-        # only report age of backups if there is at least one
-        puts "in backup_status num backups #{@parser.num_backups}"
-        puts "in backup_status latest backup age #{@parser.latest_bu_age}"
+      end
+
+      def report_backup_age_status
+        # only report age if there is at least one
         if @parser.num_backups > 0
           @status_string << " backup_age=#{@parser.latest_bu_age < @thresholds[:bu_age] ? 'OK' : @parser.latest_bu_age}"
         end
@@ -77,10 +89,8 @@ module BarmanCheck
         "#{growth_status} Barman_#{@parser.db_name}_growth - #{report_string}\n"
       end
 
-      def collect_failure_status
+      def collect_critical_status
         # check for failed states, in order of importance
-        @status_string = ''
-        @status = OK
         if barman_check.bad_status_check == CRITICAL
           @status = barman_check.bad_status_check
           @status_string = @parser.bad_statuses * ','
