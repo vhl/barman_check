@@ -46,7 +46,6 @@ module BarmanCheck
         feature, status, _part1, _part2 = status_line.split(':')
         @bad_statuses.push(feature.strip) if status !~ /OK/
       end
-      puts "end parse_check_data server name: #{db_name}"
     end
 
     # parses the backup list looking for FAILED backups;
@@ -82,7 +81,6 @@ module BarmanCheck
           @latest_bu_age = ((DateTime.now.to_time.utc - datetime_most_recent.to_time) / 60 / 60).round
         end
       end
-      puts "end determine_backup_age latest bu age #{latest_bu_age}"
     end
 
     def backups_growing
