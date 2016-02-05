@@ -9,3 +9,4 @@
 /tmp/
 *.bak
 .ruby-gemset
+*byebug*
