@@ -50,7 +50,6 @@ module BarmanCheck
       def backup_status
         # first check for failed states, in order of importance
         collect_critical_status
-        puts "Finished collecting critical statuses #{@status_string}"
         # if we get to here and the status is not CRITICAL we might
         # need to override it with the WARNING status for backup count
         file_count_status = barman_check.backup_file_count_check
@@ -100,15 +99,15 @@ module BarmanCheck
           @status_string = "expected #{@thresholds[:bu_count]} backups found #{@parser.num_backups}"
         elsif barman_check.backup_age_check == CRITICAL
           @status = barman_check.backup_age_check
-        end
+        end    
       end
     end
   end
 end
 
 # rubocop:disable all
-#require 'barman_check/parser'
-#db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
+# require 'barman_check/parser'
+# db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
 #            "archive_mode: OK ",
 #            "archive_command:  OK ",
 #            "continuous archiving: OK ", 
@@ -132,7 +131,7 @@ end
 #           "main 20160118T000001 - Sun Jan 31 22:56:52 2016 - Size: 27.9 GiB - WAL Size: 102.3 MiB"]
 #parser = BarmanCheck::Parser.new(db_check, db_list)
 #parser.determine_backup_age
-##thresholds = { :bu_count => 3, :bu_age => 25 }
+#thresholds = { :bu_count => 3, :bu_age => 25 }
 #thresholds = { :bu_count => 3, :bu_age => 50 }
 #check_mk = BarmanCheck::Formatters::BarmanCheckMk.new(parser,thresholds)
 #check_mk.barman_check

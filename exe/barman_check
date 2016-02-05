@@ -47,27 +47,28 @@ OptionParser.new do |opts|
   end
 
   opts.on('--bc', '--backup-count=bc', 'Specify required number of backups') do |bc|
-    options[:thresholds][:bu_count] = bc
+    options[:thresholds][:bu_count] = bc.to_i
   end
 
   opts.on('--ba', '--backup-age=ba', 'Specify minimum backup age in hours') do |ba|
-    options[:thresholds][:bu_age] = ba
+    options[:thresholds][:bu_age] = ba.to_i
   end
 
 end.parse!
 
+check_data_string = `barman check main`
+check_data= check_data_string.split(/\n/).map(&:strip)
+list_data_string = `barman list-backup main`
+list_data= list_data_string.split(/\n/).map(&:strip)
+
 # get input from both barman commands at once and separate into 
 # 2 sets to pass to the check program
-barman_output_data = ARGF.read.chomp
-
-#puts " Input data: #{barman_output_data}"
-a, b = barman_output_data.split("FILE_DELIMITER\n")
-#puts " Check data as string:START#{a}"
-#puts " List data as string:START#{b}"
-check_data= a.split(/\n/).map(&:strip)
-list_data =b.split(/\n/).map(&:strip)
-#puts " Check data: #{check_data}"
-#puts " List data: #{list_data}"
+#barman_output_data = ARGF.read.chomp
+#
+#a, b = barman_output_data.split("FILE_DELIMITER\n")
+#
+#check_data= a.split(/\n/).map(&:strip)
+#list_data =b.split(/\n/).map(&:strip)
 
 print barman_check = BarmanCheck.run(options[:formatter],
                                                   options[:thresholds],

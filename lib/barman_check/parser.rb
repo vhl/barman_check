@@ -76,10 +76,13 @@ module BarmanCheck
         else
           _name, datetime_recent_file_string, _throw_away = @db_backups_data.first.split('-')
           datetime_most_recent = DateTime.parse(datetime_recent_file_string)
-          # figure out how old the latest backup is in hours
-          # NOTE: barman is reporting file dt as UTC
-          @latest_bu_age = ((DateTime.now.to_time.utc - datetime_most_recent.to_time) / 60 / 60).round
-        end
+          # NOTE: barman is reporting file dt with no adjustment for GMT
+          # this causes the file dt to look like a UTC date but it is not!
+          # so we need to adjust the file datetime to include the offset from GMT
+          # of the server that this process and barman are running on. Otherwise 
+          # the most recent backup is reporting as older than it really is.
+          @latest_bu_age = ((DateTime.now.to_time.utc - datetime_most_recent.to_time + DateTime.now.to_time.utc_offset) / 60 / 60).round
+       end
       end
     end
 
@@ -127,7 +130,7 @@ end
 #puts "Run with failed backups in list"
 #parser = BarmanCheck::Parser.new(db_check, db_list)
 #parser.determine_backup_age
-#puts "Recent failed Age of recent backup #{parse.latest_bu_age}"
+#puts "Recent failed Age of recent backup #{parser.latest_bu_age}"
 #
 # Everything OK except there are less than the desired # of backups
 #db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
