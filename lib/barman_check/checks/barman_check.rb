@@ -56,6 +56,18 @@ module BarmanCheck
           CRITICAL
         end
       end
+      
+      def bad_status_critical?
+        bad_status_check == CRITICAL
+      end
+      
+      def backup_file_count_critical?
+        backup_file_count_check == CRITICAL
+      end
+      
+      def backup_age_check_critical?
+        backup_age_check == CRITICAL
+      end
 
       def backup_growth_check
         if @parser.backups_growing
@@ -72,6 +84,18 @@ module BarmanCheck
           OK
         end
       end
+      
+      def have_backups?
+        @parser.num_backups > 0
+      end
+      
+      def bu_age_ok?
+        @parser.latest_bu_age < @thresholds[:bu_age]
+      end
+      
+      def backup_growth_ok?
+        @parser.backups_growing
+      end  
     end
   end
 end

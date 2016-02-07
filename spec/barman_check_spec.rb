@@ -13,7 +13,8 @@ describe BarmanCheck do
   let(:thresholds) do
     test_file_date = DateTime.parse("Tue Jan 26 10:15:49 2016")
     now = DateTime.now
-    bu_age_threshold = (((now.to_time - test_file_date.to_time)/60/60).round) + 1
+ #   bu_age_threshold = (((now.to_time - test_file_date.to_time)/60/60).round) + 1
+    bu_age_threshold = (((now.to_time.utc - test_file_date.to_time + now.to_time.utc_offset) / 60 / 60).round) + 1
     { bu_count: 3, bu_age: bu_age_threshold }
   end
   

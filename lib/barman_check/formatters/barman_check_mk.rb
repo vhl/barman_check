@@ -52,15 +52,15 @@ module BarmanCheck
         collect_critical_status
         # if we get to here and the status is not CRITICAL we might
         # need to override it with the WARNING status for backup count
-        file_count_status = barman_check.backup_file_count_check
-        report_file_count_status(file_count_status)
+        report_file_count_status
         report_backup_age_status
       end
 
-      def report_file_count_status(file_count_status)
+      def report_file_count_status
         # only change the output status if file count status
         # is higher alert than what has been reported so far
-        if file_count_status > OK
+        file_count_status = barman_check.backup_file_count_check
+        if file_count_status > OK 
           # only change the output status if file count status
           # is higher alert status than reported so far
           @status = file_count_status if file_count_status > @status
@@ -75,8 +75,8 @@ module BarmanCheck
 
       def report_backup_age_status
         # only report age if there is at least one
-        if @parser.num_backups > 0
-          @status_string << " backup_age=#{@parser.latest_bu_age < @thresholds[:bu_age] ? 'OK' : @parser.latest_bu_age}"
+        if barman_check.have_backups?
+          @status_string << " backup_age=#{barman_check.bu_age_ok? ? 'OK' : @parser.latest_bu_age}"
         end
         "#{@status} Barman_#{@parser.db_name}_status - #{STATUS_LOOKUP[@status]} #{@status_string}\n"
       end
@@ -84,20 +84,20 @@ module BarmanCheck
       def backup_growth
         growth_status = barman_check.backup_growth_check
         report_string = "#{STATUS_LOOKUP[growth_status]}"
-        report_string << ' bad growth trend' if growth_status > OK
+        report_string << ' bad growth trend' unless barman_check.backup_growth_ok?
         "#{growth_status} Barman_#{@parser.db_name}_growth - #{report_string}\n"
       end
 
       def collect_critical_status
         # check for failed states, in order of importance
-        if barman_check.bad_status_check == CRITICAL
+        if barman_check.bad_status_critical?
           @status = barman_check.bad_status_check
           @status_string = @parser.bad_statuses * ','
           @status_string << ' '
-        elsif barman_check.backup_file_count_check == CRITICAL
+        elsif barman_check.backup_file_count_critical?
           @status = barman_check.backup_file_count_check
           @status_string = "expected #{@thresholds[:bu_count]} backups found #{@parser.num_backups}"
-        elsif barman_check.backup_age_check == CRITICAL
+        elsif barman_check.backup_age_check_critical?
           @status = barman_check.backup_age_check
         end    
       end
