@@ -13,7 +13,6 @@ describe BarmanCheck do
   let(:thresholds) do
     test_file_date = DateTime.parse("Tue Jan 26 10:15:49 2016")
     now = DateTime.now
- #   bu_age_threshold = (((now.to_time - test_file_date.to_time)/60/60).round) + 1
     bu_age_threshold = (((now.to_time.utc - test_file_date.to_time + now.to_time.utc_offset) / 60 / 60).round) + 1
     { bu_count: 3, bu_age: bu_age_threshold }
   end
@@ -21,12 +20,7 @@ describe BarmanCheck do
 describe '#check' do
   before do
    # initialize values used by all tests
-   #@expected_template_no_bu_age = '%1$s Barman_main_status - %2$s %3$s
-#%4$s Barman_main_growth - %5$s'
    @formatter  = :barman_check_mk
-   # set the threshold for age of file reported in test data plus 1 hour
-   # that will cause repeatable happy path using the test data files
-
   end
 
   context 'given no status failures, correct number of backups and a backup that is not stale' do

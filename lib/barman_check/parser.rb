@@ -21,7 +21,8 @@ module BarmanCheck
   class Parser
     FAILED = 'FAILED'.freeze
     attr_reader :db_name, :latest_bu_age,
-                :num_backups, :bad_statuses
+                :num_backups, :bad_statuses,
+                :recent_backup_failed
 
     def initialize(db_check_data, db_backup_list_data)
       @db_check_data = db_check_data
@@ -78,10 +79,10 @@ module BarmanCheck
           # NOTE: barman is reporting file dt with no adjustment for GMT
           # this causes the file dt to look like a UTC date but it is not!
           # so we need to adjust the file datetime to include the offset from GMT
-          # of the server that this process and barman are running on. Otherwise 
+          # of the server that this process and barman are running on. Otherwise
           # the most recent backup is reporting as older than it really is.
           @latest_bu_age = ((DateTime.now.to_time.utc - datetime_most_recent.to_time + DateTime.now.to_time.utc_offset) / 60 / 60).round
-       end
+        end
       end
     end
 
@@ -100,10 +101,6 @@ module BarmanCheck
         end
         backups_growing
       end
-    end
-    
-    def recent_backup_failed?
-      @recent_backup_failed
     end
   end
 end
