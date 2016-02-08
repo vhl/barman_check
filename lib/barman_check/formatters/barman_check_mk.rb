@@ -47,6 +47,7 @@ module BarmanCheck
         end
       end
 
+      # builds the backup status line 
       def backup_status
         # first check for failed states, in order of importance
         collect_critical_status
@@ -54,6 +55,15 @@ module BarmanCheck
         # need to override it with the WARNING status for backup count
         report_file_count_status
         report_backup_age_status
+        "#{@status} Barman_#{@parser.db_name}_status - #{STATUS_LOOKUP[@status]} #{@status_string}\n"
+      end
+      
+      # builds the backup growth line 
+      def backup_growth
+        growth_status = barman_check.backup_growth_check
+        report_string = "#{STATUS_LOOKUP[growth_status]}"
+        report_string << ' bad growth trend' unless barman_check.backup_growth_ok?
+        "#{growth_status} Barman_#{@parser.db_name}_growth - #{report_string}\n"
       end
 
       def report_file_count_status
@@ -78,7 +88,6 @@ module BarmanCheck
         if barman_check.have_backups?
           @status_string << " backup_age=#{barman_check.bu_age_ok? ? 'OK' : @parser.latest_bu_age}"
         end
-        "#{@status} Barman_#{@parser.db_name}_status - #{STATUS_LOOKUP[@status]} #{@status_string}\n"
       end
 
       def backup_growth
