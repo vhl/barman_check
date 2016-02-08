@@ -21,8 +21,7 @@ module BarmanCheck
   class Parser
     FAILED = 'FAILED'.freeze
     attr_reader :db_name, :latest_bu_age,
-                :num_backups, :bad_statuses,
-                :recent_backup_failed
+                :num_backups, :bad_statuses
 
     def initialize(db_check_data, db_backup_list_data)
       @db_check_data = db_check_data
@@ -102,6 +101,10 @@ module BarmanCheck
         backups_growing
       end
     end
+    
+    def recent_backup_failed?
+      @recent_backup_failed
+    end
   end
 end
 
@@ -130,8 +133,8 @@ end
 #puts "Run with failed backups in list"
 #parser = BarmanCheck::Parser.new(db_check, db_list)
 #parser.determine_backup_age
-#puts "Recent failed Age of recent backup #{parser.latest_bu_age}"
-#
+#puts "Recent backup failed? #{parser.recent_backup_failed?}"
+
 # Everything OK except there are less than the desired # of backups
 #db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
 #            "archive_mode: OK ",
