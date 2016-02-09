@@ -20,91 +20,98 @@
 require 'barman_check/checks/barman_check'
 
 module BarmanCheck
+  OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3
   module Formatters
     class BarmanCheckMk
-      attr_reader :parser
+      attr_reader :parser, :thresholds
       STATUS_LOOKUP = { 0 => 'OK', 1 => 'WARNING', 2 => 'CRITICAL' }.freeze
-      OK = 0
-      WARNING = 1
-      CRITICAL = 2
-      UNKNOWN = 3
 
       def initialize(parser, thresholds)
         @parser = parser
         @thresholds = thresholds
-        @status_string = ''
-        @status = OK
       end
 
       def barman_check
         @barman_check ||= BarmanCheck::Checks::BarmanCheck.new(@parser, @thresholds)
+        @backup_status ||= BackupStatus.new(self, @barman_check)
+        @backup_growth ||= BackupGrowth.new(self, @barman_check)
       end
 
       def output
         ''.tap do |s|
-          s << backup_status
-          s << backup_growth
+          s << @backup_status.to_s
+          s << @backup_growth.to_s
         end
       end
 
-      # builds the backup status line
-      def backup_status
-        # first check for failed states, in order of importance
-        collect_critical_status
-        # if we get to here and the status is not CRITICAL we might
-        # need to override it with the WARNING status for backup count
-        report_file_count_status
-        report_backup_age_status
-        "#{@status} Barman_#{@parser.db_name}_status - #{STATUS_LOOKUP[@status]} #{@status_string}\n"
-      end
+      class BackupStatus
+        def initialize(formatter, barman_check)
+          @parser = formatter.parser
+          @thresholds = formatter.thresholds
+          @barman_check ||= barman_check
+          status
+        end
 
-      # builds the backup growth line
-      def backup_growth
-        growth_status = barman_check.backup_growth_check
-        report_string = "#{STATUS_LOOKUP[growth_status]}"
-        report_string << ' bad growth trend' unless barman_check.backup_growth_ok?
-        "#{growth_status} Barman_#{@parser.db_name}_growth - #{report_string}\n"
-      end
+        def file_count_status
+          if @barman_check.backup_count_low?
+            "expected #{@thresholds[:bu_count]} backups found #{@parser.num_backups}"
+          else
+            "backups=#{@parser.num_backups}"
+          end
+        end
 
-      def report_file_count_status
-        # only change the output status if file count status
-        # is higher alert level than what has been reported so far
-        if barman_check.backup_count_low?
-          # report the higher alert status
-          @status = barman_check.higher_alert(@status)
-          # always report expected status if count is too low
-          @status_string << "expected #{@thresholds[:bu_count]} backups found #{@parser.num_backups}"
-        else
-          # add backup file count
-          @status_string << "backups=#{@parser.num_backups}"
+        def backup_age_status
+          if @barman_check.backups? && !@barman_check.recent_backup_failed?
+            "backup_age=#{@barman_check.bu_age_ok? ? 'OK' : @parser.latest_bu_age}"
+          else
+            ' '
+          end
+        end
+
+        def failed_statuses
+          if @barman_check.bad_status_critical?
+            @parser.bad_statuses * ',' << ' '
+          else
+            ''
+          end
+        end
+
+        def status
+          if @barman_check.backup_file_count_critical? || @barman_check.bad_status_critical? ||
+             @barman_check.backup_age_check_critical? || @barman_check.recent_backup_failed?
+            BarmanCheck::CRITICAL
+          elsif @barman_check.backup_count_low?
+            BarmanCheck::WARNING
+          else
+            BarmanCheck::OK
+          end
+        end
+
+        def to_s
+          final_status = status
+          "#{final_status} Barman_#{@parser.db_name}_status - #{STATUS_LOOKUP[final_status]} #{failed_statuses}#{[file_count_status, backup_age_status].join(' ')}\n"
         end
       end
 
-      def report_backup_age_status
-        # only report age if there is at least one
-        if barman_check.backups?
-          @status_string << " backup_age=#{barman_check.bu_age_ok? ? 'OK' : @parser.latest_bu_age}"
+      class BackupGrowth
+        def initialize(formatter, barman_check)
+          @parser = formatter.parser
+          @barman_check ||= barman_check
         end
-      end
 
-      def collect_critical_status
-        # check for failed states, in order of importance
-        if barman_check.bad_status_critical?
-          @status = barman_check.bad_status_check
-          @status_string = @parser.bad_statuses * ','
-          @status_string << ' '
-        elsif barman_check.backup_file_count_critical?
-          @status = barman_check.backup_file_count_check
-          @status_string = "expected #{@thresholds[:bu_count]} backups found #{@parser.num_backups}"
-        elsif barman_check.backup_age_check_critical?
-          @status = barman_check.backup_age_check
+        def to_s
+          growth_status = @barman_check.backup_growth_check
+          growth_report = "#{STATUS_LOOKUP[growth_status]}"
+          growth_report << ' bad growth trend' unless @barman_check.backup_growth_ok?
+          "#{growth_status} Barman_#{@parser.db_name}_growth - #{growth_report}"
         end
       end
     end
   end
 end
 
-# rubocop:disable all
+#rubocop:disable all
+# TEST 1 everything OK
 # require 'barman_check/parser'
 # db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
 #            "archive_mode: OK ",
@@ -115,24 +122,50 @@ end
 #            "backup maximum age: OK (interval provided: 1 day, latest backup age: 11 hours, 48 minutes) ",
 #            "compression settings: OK ",
 #            "minimum redundancy requirements: OK (have 2 backups, expected at least 1)"]
-#db_list = ["main 20160201T000001 - Tue Feb  2 16:55:50 2016 - Size: 28.2 GiB - WAL Size: 33.3 MiB",
+#db_list = ["main 20160201T000001 - Mon Feb  8 16:55:50 2016 - Size: 28.2 GiB - WAL Size: 33.3 MiB",
 #           "main 20160118T000001 - Mon Jan 18 00:00:43 2016 - Size: 27.9 GiB - WAL Size: 102.3 MiB",
 #           "main 20160117T000002 - Sun Jan 17 00:00:36 2016 - Size: 27.0 GiB - WAL Size: 68.7 MiB"]
 #parser = BarmanCheck::Parser.new(db_check, db_list)
-#parser.determine_backup_age
 #thresholds = { :bu_count => 3, :bu_age => 25 }
+#check_mk = BarmanCheck::Formatters::BarmanCheckMk.new(parser, thresholds)
+#check_mk.barman_check
+#puts "Barman check results: \n#{check_mk.output}"
+
+# TEST 2 use same db_check as above: case where there are 0 < number of backup files < desired number
+#db_list = ["main 20160201T000001 - Mon Feb  1 22:55:50 2016 - Size: 28.2 GiB - WAL Size: 33.3 MiB",
+#           "main 20160118T000001 - Sun Jan 31 22:56:52 2016 - Size: 27.9 GiB - WAL Size: 102.3 MiB"]
+#parser = BarmanCheck::Parser.new(db_check, db_list)
+#thresholds = { :bu_count => 3, :bu_age => 25 }
+#thresholds = { :bu_count => 3, :bu_age => 500 }
 #check_mk = BarmanCheck::Formatters::BarmanCheckMk.new(parser,thresholds)
 #check_mk.barman_check
 #puts "Barman check results: \n#{check_mk.output}"
 
-#case where there are 0 < number of backup files < desired number
-#db_list = ["main 20160201T000001 - Mon Feb  1 22:55:50 2016 - Size: 28.2 GiB - WAL Size: 33.3 MiB",
-#           "main 20160118T000001 - Sun Jan 31 22:56:52 2016 - Size: 27.9 GiB - WAL Size: 102.3 MiB"]
+# TEST 3 use same db_check as above: case where the backups are not growing, everything else OK
+#db_list = ["main 20160201T000001 - Mon Feb  8 16:55:50 2016 - Size: 28.2 GiB - WAL Size: 33.3 MiB",
+#           "main 20160118T000001 - Mon Jan 18 00:00:43 2016 - Size: 27.0 GiB - WAL Size: 102.3 MiB",
+#           "main 20160117T000002 - Sun Jan 17 00:00:36 2016 - Size: 27.9 GiB - WAL Size: 68.7 MiB"]
 #parser = BarmanCheck::Parser.new(db_check, db_list)
-#parser.determine_backup_age
+#thresholds = { :bu_count => 3, :bu_age => 200 }
+#check_mk = BarmanCheck::Formatters::BarmanCheckMk.new(parser, thresholds)
+#check_mk.barman_check
+#puts "Barman check results: \n#{check_mk.output}"
+# TEST 4 case where we have failed statuses but everything else is OK
+#db_check = ["Server main:", "ssh: FAILED ", "PostgreSQL: FAILED ", 
+#            "archive_mode: OK ",
+#            "archive_command:  OK ",
+#            "continuous archiving: OK ", 
+#            "directories: OK ",
+#            "retention policy settings: OK ",
+#            "backup maximum age: OK (interval provided: 1 day, latest backup age: 11 hours, 48 minutes) ",
+#            "compression settings: OK ",
+#            "minimum redundancy requirements: OK (have 2 backups, expected at least 1)"]
+#db_list = ["main 20160201T000001 - Mon Feb  8 16:55:50 2016 - Size: 28.2 GiB - WAL Size: 33.3 MiB",
+#           "main 20160118T000001 - Mon Jan 18 00:00:43 2016 - Size: 27.9 GiB - WAL Size: 102.3 MiB",
+#           "main 20160117T000002 - Sun Jan 17 00:00:36 2016 - Size: 27.0 GiB - WAL Size: 68.7 MiB"]
+#parser = BarmanCheck::Parser.new(db_check, db_list)
 #thresholds = { :bu_count => 3, :bu_age => 25 }
-#thresholds = { :bu_count => 3, :bu_age => 50 }
-#check_mk = BarmanCheck::Formatters::BarmanCheckMk.new(parser,thresholds)
+#check_mk = BarmanCheck::Formatters::BarmanCheckMk.new(parser, thresholds)
 #check_mk.barman_check
 #puts "Barman check results: \n#{check_mk.output}"
 # rubocop:enable all

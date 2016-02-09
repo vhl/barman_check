@@ -119,7 +119,6 @@ end
 #           "main 20160118T000001 - Mon Jan 18 00:00:43 2016 - Size: 27.9 GiB - WAL Size: 102.3 MiB",
 #           "main 20160117T000002 - Sun Jan 17 00:00:36 2016 - Size: 27.0 GiB - WAL Size: 68.7 MiB"]
 #parser = BarmanCheck::Parser.new(db_check, db_list)
-#parser.determine_backup_age
 #puts "Age of recent backup #{parser.latest_bu_age}"
 #Failed backups are in the backups list
 #db_list = ["main 20160201T170824 - FAILED",
@@ -129,7 +128,6 @@ end
 #           "main 20160129T220754 - FAILED"]
 #puts "Run with failed backups in list"
 #parser = BarmanCheck::Parser.new(db_check, db_list)
-#parser.determine_backup_age
 #puts "Recent backup failed? #{parser.recent_backup_failed?}"
 
 # Everything OK except there are less than the desired # of backups

@@ -69,6 +69,10 @@ module BarmanCheck
         backup_age_check == CRITICAL
       end
 
+      def recent_backup_failed?
+        recent_backup_failed_check == CRITICAL
+      end
+
       def backup_growth_check
         if @parser.backups_growing
           OK
@@ -96,16 +100,15 @@ module BarmanCheck
       def backup_growth_ok?
         @parser.backups_growing
       end
-      
+
       def backup_count_low?
         backup_file_count_check > OK
       end
-      
+
       def higher_alert(alert_status)
         bu_file_count_status = backup_file_count_check
         bu_file_count_status > alert_status ? bu_file_count_status : alert_status
       end
-      
     end
   end
 end
