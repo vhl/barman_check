@@ -4,9 +4,7 @@ Provides a command-line tool to run Barman (Backup and Recovery Manager for Post
 "check" and "list" commands. It currently generates output in check_mk (Nagios) format, but 
 can be easily extended for StatsD/Graphite, Elasticsearch, etc.
 It is designed to call "barman check [dbname]" and "barman list [dbname] for the database
-specified on the command line. Alternatively you can put the results of those commands
-into a file, separated by a line containing the word "FILE_DELIMITER" and 
-cat that file and pipe it in. 
+specified on the command line.
 
 ## Installation
 
@@ -35,8 +33,8 @@ Alternatively you can put the results of the barman commands into a file, separa
 containing the word "FILE_DELIMITER" and `cat` the output and pipe it in. 
  
 NOTE: the exe runs with the following default options -
-backup age = 25 hours
-backups = 3
+
+backup age = 25 hours, backups = 3
 
 These can be overridden using the command-line options, --bc and --ba.
 
