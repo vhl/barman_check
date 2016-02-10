@@ -28,7 +28,7 @@ require 'pp'
 
 options = {
   formatter: :barman_check_mk,
-  db_name: '',
+  db_name: 'main',
   thresholds: {
     bu_count: 3,
     bu_age: 25
@@ -61,21 +61,19 @@ OptionParser.new do |opts|
 
 end.parse!
 
-# if a dbname is provided then it will make actual barman check and barman list calls" 
-if options[:db_name].nil? do
-  check_data_string = `barman check #{options[:db_name]}`
-  check_data= check_data_string.split(/\n/).map(&:strip)
-  list_data_string = `barman list-backup main`
-  list_data= list_data_string.split(/\n/).map(&:strip)
-end
-else # no dbname so we are in test mode
-  # read cat of test file containing barman output results
-  barman_output_data = ARGF.read.chomp
-  # check command results delimited from list command results by a line with the string
-  a, b = barman_output_data.split("FILE_DELIMITER\n")
-  check_data= a.split(/\n/).map(&:strip)
-  list_data =b.split(/\n/).map(&:strip)
-end
+check_data_string = `barman check #{options[:db_name]}`
+check_data= check_data_string.split(/\n/).map(&:strip)
+list_data_string = `barman list-backup main`
+list_data= list_data_string.split(/\n/).map(&:strip)
+
+# get input from both barman commands at once and separate into 
+# 2 sets to pass to the check program
+#barman_output_data = ARGF.read.chomp
+#b
+#a, b = barman_output_data.split("FILE_DELIMITER\n")
+#
+#check_data= a.split(/\n/).map(&:strip)
+#list_data =b.split(/\n/).map(&:strip)
 
 print barman_check = BarmanCheck.run(options[:formatter],
                                                   options[:thresholds],

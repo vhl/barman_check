@@ -119,7 +119,7 @@ end
     it 'generates the correct output for nagios' do
       #2 Barman_main_status - CRITICAL minimum redundancy requirements expected 3 backups found 0
       #2 Barman_main_growth - CRITICAL bad growth trend
-      expected = expected_template_no_bu_age % ['2', 'CRITICAL', 'minimum redundancy requirements expected 3 backups found 0 ', '2', 'CRITICAL bad growth trend']
+      expected = expected_template_no_bu_age % ['2', 'CRITICAL', 'minimum redundancy requirements expected 3 backups found 0', '2', 'CRITICAL bad growth trend']
       output = BarmanCheck.run(@formatter, thresholds, @status_data, @list_data)
       puts "TEST:No backups output:\n#{output}"
       expect(output).to match(expected)
@@ -157,7 +157,7 @@ end
     end
     
     it 'generates the correct output for nagios' do
-      expected = expected_template_no_bu_age % ['2', 'CRITICAL', 'ssh,PostgreSQL,minimum redundancy requirements expected 3 backups found 0 ', '2', 'CRITICAL bad growth trend']
+      expected = expected_template_no_bu_age % ['2', 'CRITICAL', 'ssh,PostgreSQL,minimum redundancy requirements expected 3 backups found 0', '2', 'CRITICAL bad growth trend']
       output = BarmanCheck.run(@formatter, thresholds, @status_data, @list_data)
       puts "Status failures AND all failed backups output \n#{output}"
       expect(output).to match(expected)

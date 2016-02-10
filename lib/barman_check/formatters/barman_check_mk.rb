@@ -33,20 +33,14 @@ module BarmanCheck
 
       def barman_check
         @barman_check ||= BarmanCheck::Checks::BarmanCheck.new(@parser, @thresholds)
-      end
-      
-      def backup_status
-        @backup_status ||= BackupStatus.new(self, barman_check)
-      end
-      
-      def backup_growth
-        @backup_growth ||= BackupGrowth.new(self, barman_check)
+        @backup_status ||= BackupStatus.new(self, @barman_check)
+        @backup_growth ||= BackupGrowth.new(self, @barman_check)
       end
 
       def output
         ''.tap do |s|
-          s << backup_status.to_s
-          s << backup_growth.to_s
+          s << @backup_status.to_s
+          s << @backup_growth.to_s
         end
       end
 
@@ -54,7 +48,8 @@ module BarmanCheck
         def initialize(formatter, barman_check)
           @parser = formatter.parser
           @thresholds = formatter.thresholds
-          @barman_check = barman_check
+          @barman_check ||= barman_check
+          status
         end
 
         def file_count_status
@@ -69,7 +64,7 @@ module BarmanCheck
           if @barman_check.backups? && !@barman_check.recent_backup_failed?
             "backup_age=#{@barman_check.bu_age_ok? ? 'OK' : @parser.latest_bu_age}"
           else
-            ''
+            ' '
           end
         end
 
@@ -101,7 +96,7 @@ module BarmanCheck
       class BackupGrowth
         def initialize(formatter, barman_check)
           @parser = formatter.parser
-          @barman_check = barman_check
+          @barman_check ||= barman_check
         end
 
         def to_s
