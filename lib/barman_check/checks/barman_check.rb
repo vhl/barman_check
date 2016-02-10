@@ -105,10 +105,6 @@ module BarmanCheck
         backup_file_count_check > OK
       end
 
-      def higher_alert(alert_status)
-        bu_file_count_status = backup_file_count_check
-        bu_file_count_status > alert_status ? bu_file_count_status : alert_status
-      end
     end
   end
 end
