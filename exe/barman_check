@@ -43,7 +43,7 @@ OptionParser.new do |opts|
     exit
   end
 
-  opts.on('-db', '--db-name=db', 'Specify name of PostgreSQL db') do |db|
+  opts.on('--db', '--db-name=db', 'Specify name of PostgreSQL db') do |db|
     options[:db_name] = db
   end
 
@@ -51,23 +51,22 @@ OptionParser.new do |opts|
     options[:formatter] = f
   end
 
-  opts.on('-bc', '--backup-count=bc', 'Specify required number of backups') do |bc|
+  opts.on('--bc', '--backup-count=bc', 'Specify required number of backups') do |bc|
     options[:thresholds][:bu_count] = bc.to_i
   end
 
-  opts.on('-ba', '--backup-age=ba', 'Specify minimum backup age in hours') do |ba|
+  opts.on('--ba', '--backup-age=ba', 'Specify minimum backup age in hours') do |ba|
     options[:thresholds][:bu_age] = ba.to_i
   end
 
 end.parse!
 
 # if a dbname is provided then it will make actual barman check and barman list calls" 
-if options[:db_name].nil? do
+if options[:db_name].length > 0
   check_data_string = `barman check #{options[:db_name]}`
   check_data= check_data_string.split(/\n/).map(&:strip)
   list_data_string = `barman list-backup main`
   list_data= list_data_string.split(/\n/).map(&:strip)
-end
 else # no dbname so we are in test mode
   # read cat of test file containing barman output results
   barman_output_data = ARGF.read.chomp
