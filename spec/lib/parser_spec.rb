@@ -123,4 +123,34 @@ describe BarmanCheck::Parser do
       end
     end
   end
+  
+  describe 'barman reports no backups' do
+    before do
+      check_data = ['Server main:', 'ssh: OK ', 'PostgreSQL: OK ',
+                    'archive_mode: OK ',
+                    'archive_command:  OK ',
+                    'continuous archiving: OK ',
+                    'directories: OK ',
+                    'retention policy settings: OK ',
+                    'compression settings: OK ',
+                    'minimum redundancy requirements: FAILED (have 0 backups, expected at least 1)']
+      list_data = ['main 20160119T000001 - FAILED',
+                   'main 20160118T000001 - FAILED',
+                   'main 20160117T000002 - FAILED']
+
+      @parser = described_class.new(check_data, list_data)
+    end
+
+    describe '#num_backups is 0' do
+      it 'returns the number of backups in the backup list' do
+        expect(@parser.num_backups).to eql(0)
+      end
+    end
+    
+    describe '#backups_growing is false' do
+      it 'returns whether or not backups are growing in size' do
+        expect(@parser.backups_growing).to eq(false)
+      end
+    end
+  end
 end
