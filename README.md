@@ -28,20 +28,25 @@ Or install it yourself as:
 
 After install, you can run barman_check --help to see available options. To test it out, use the
 test output file, barman_output.txt, located in the spec/fixture directory, like so:
-cat spec/fixtures/barman_output.txt | barman_check
 
-This will generate check_mk-style output. 
+`cat spec/fixtures/barman_output.txt | barman_check`
 
+Alternatively you can put the results of the barman commands into a file, separated by a line 
+containing the word "FILE_DELIMITER" and `cat` the output and pipe it in. 
+ 
 NOTE: the exe runs with the following default options -
 backup age = 25 hours
 backups = 3
 
 These can be overridden using the command-line options, --bc and --ba.
 
-To run in "real" mode, you will need to install barman, configure it to communicate
+To run in "realtime" mode, you will need to install barman, configure it to communicate
 with your PostgreSQL database, and run barman_check as the barman user.
 In this mode you must indicate your database name using the command-line
-option --db=dbname, e.g. barman_check --db=main
+option --db=dbname, e.g. `barman_check --db=main`
+
+All of the above modes will generate check_mk-style output. 
+
 
 ## Development
 
