@@ -66,7 +66,8 @@ module BarmanCheck
       end
 
       def backup_age_check_critical?
-        backup_age_check == CRITICAL
+        # only check backup age if the most recent one is there
+        recent_backup_failed_check == CRITICAL || backup_age_check == CRITICAL
       end
 
       def recent_backup_failed?

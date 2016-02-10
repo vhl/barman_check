@@ -145,23 +145,45 @@ end
     end
   end
   
-   #2 Barman_main_status - CRITICAL ssh,minimum redundancy requirements expected 3 backups found 0
-   #2 Barman_main_growth - CRITICAL bad growth trend
-   context 'status failures reported, AND there are no backups' do
+   #2 Barman_main_status - CRITICAL backups=3 backup_age=latest backup failed
+   #0 Barman_main_growth - OK
+   context 'latest backup failed, even though we have the required 3 and everything else is OK' do
     before do
       # open a fixture for the optimal path
-      file_path = 'spec/fixtures/barman-check-ssh-bu-failures.txt'
+      file_path = 'spec/fixtures/barman-check.txt'
       @status_data = File.readlines(file_path)
-      file_path = 'spec/fixtures/barman-list-with-failures.txt'
+      file_path = 'spec/fixtures/barman-list-latest-failed.txt'
       @list_data = File.readlines(file_path)
     end
     
     it 'generates the correct output for nagios' do
-      expected = expected_template_no_bu_age % ['2', 'CRITICAL', 'ssh,PostgreSQL,minimum redundancy requirements expected 3 backups found 0 ', '2', 'CRITICAL bad growth trend']
+            expected = expected_template % ['2', 'CRITICAL', 'backups=3', "latest backup failed", '0', 'OK']
       output = BarmanCheck.run(@formatter, thresholds, @status_data, @list_data)
-      puts "Status failures AND all failed backups output \n#{output}"
+      puts "Latest backup failed AND everything else OK output \n#{output}"
       expect(output).to match(expected)
     end
   end
+  
+   #2 Barman_main_status - CRITICAL expected 4 backups found 3 backup_age=latest backup failed
+   #0 Barman_main_growth - OK
+   context 'latest backup failed AND less than expected number of backups, everything else is OK' do
+    before do
+      # open a fixture for the optimal path
+      file_path = 'spec/fixtures/barman-check.txt'
+      @status_data = File.readlines(file_path)
+      file_path = 'spec/fixtures/barman-list-latest-failed.txt'
+      @list_data = File.readlines(file_path)
+    end
+    
+    it 'generates the correct output for nagios' do
+      expected = expected_template % ['2', 'CRITICAL', 'expected 4 backups found 3', "latest backup failed", '0', 'OK']
+      test_thresholds = { bu_count: 4, bu_age: thresholds[:bu_age] }
+      output = BarmanCheck.run(@formatter, test_thresholds, @status_data, @list_data)
+      puts "Latest backup failed AND less than expected number of backups output \n#{output}"
+      expect(output).to match(expected)
+    end
+  end
+  
+  
 end
 end

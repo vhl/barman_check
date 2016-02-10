@@ -3,7 +3,7 @@
 Provides a command-line tool to run Barman (Backup and Recovery Manager for PostgreSQL)
 "check" and "list" commands. It currently generates output in check_mk (Nagios) format, but 
 can be easily extended for StatsD/Graphite, Elasticsearch, etc.
-It is designed to call "barman check [dbname]" and "barman list [dbname] for the database
+It is designed to call "barman check [dbname]" and "barman list-backup [dbname] for the database
 specified on the command line.
 
 ## Installation
