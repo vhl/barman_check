@@ -67,7 +67,7 @@ module BarmanCheck
 
         def backup_age_status
           if @barman_check.backups? && !@barman_check.recent_backup_failed?
-            "backup_age=#{@barman_check.bu_age_ok? ? 'OK' : @parser.latest_bu_age}"
+            "backup_age=#{@barman_check.backup_age_ok? ? 'OK' : @parser.latest_bu_age}"
           elsif @barman_check.recent_backup_failed?
             "backup_age=latest backup failed"
           else  

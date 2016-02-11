@@ -42,7 +42,7 @@ module BarmanCheck
 
       def backup_age_check
         latest_bu_age = @parser.latest_bu_age
-        if latest_bu_age < @thresholds[:bu_age]
+        if latest_bu_age <= @thresholds[:bu_age]
           OK
         else
           CRITICAL
@@ -94,8 +94,8 @@ module BarmanCheck
         @parser.num_backups > 0
       end
 
-      def bu_age_ok?
-        @parser.latest_bu_age < @thresholds[:bu_age]
+      def backup_age_ok?
+        @parser.latest_bu_age <= @thresholds[:bu_age]
       end
 
       def backup_growth_ok?
