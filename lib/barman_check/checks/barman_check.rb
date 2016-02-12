@@ -105,7 +105,6 @@ module BarmanCheck
       def backup_count_low?
         backup_file_count_check > OK
       end
-
     end
   end
 end
