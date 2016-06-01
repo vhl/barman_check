@@ -79,10 +79,10 @@ module BarmanCheck
           # NOTE: barman is reporting file dt with no adjustment for GMT
           # this causes the file dt to look like a UTC date but it is not!
           # so we need to adjust the file datetime to include the offset from GMT
-          # of the server that this process and barman are running on. Otherwise 
+          # of the server that this process and barman are running on. Otherwise
           # the most recent backup is reporting as older than it really is.
           @latest_bu_age = ((DateTime.now.to_time.utc - datetime_most_recent.to_time + DateTime.now.to_time.utc_offset) / 60 / 60).round
-       end
+        end
       end
     end
 
@@ -119,7 +119,6 @@ end
 #           "main 20160118T000001 - Mon Jan 18 00:00:43 2016 - Size: 27.9 GiB - WAL Size: 102.3 MiB",
 #           "main 20160117T000002 - Sun Jan 17 00:00:36 2016 - Size: 27.0 GiB - WAL Size: 68.7 MiB"]
 #parser = BarmanCheck::Parser.new(db_check, db_list)
-#parser.determine_backup_age
 #puts "Age of recent backup #{parser.latest_bu_age}"
 #Failed backups are in the backups list
 #db_list = ["main 20160201T170824 - FAILED",
@@ -129,9 +128,8 @@ end
 #           "main 20160129T220754 - FAILED"]
 #puts "Run with failed backups in list"
 #parser = BarmanCheck::Parser.new(db_check, db_list)
-#parser.determine_backup_age
-#puts "Recent failed Age of recent backup #{parser.latest_bu_age}"
-#
+#puts "Recent backup failed? #{parser.recent_backup_failed?}"
+
 # Everything OK except there are less than the desired # of backups
 #db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
 #            "archive_mode: OK ",
