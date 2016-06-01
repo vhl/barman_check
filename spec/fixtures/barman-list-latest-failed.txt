@@ -1,0 +1,4 @@
+main 20160210T152237 - FAILED
+main 20160205T130835 - Fri Feb  5 13:08:37 2016 - Size: 18.8 MiB - WAL Size: 0 B
+main 20160205T130825 - Fri Feb  5 13:08:27 2016 - Size: 18.8 MiB - WAL Size: 16.0 MiB
+main 20160205T130825 - Fri Feb  5 13:08:27 2016 - Size: 18.8 MiB - WAL Size: 16.0 MiB

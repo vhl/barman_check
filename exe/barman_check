@@ -22,25 +22,29 @@ require 'barman_check'
 require 'optparse'
 require 'pp'
 
-
 # Default thresholds
 # - backup count: 3
 # - backup age (hours): 25
 
 options = {
   formatter: :barman_check_mk,
+  db_name: '',
   thresholds: {
     bu_count: 3,
-    bu_age: 0
+    bu_age: 25
   }
 }
 
 OptionParser.new do |opts|
-  opts.banner = 'Usage: passenger_status_check [options]'
+  opts.banner = 'Usage: barman_check [options]'
 
   opts.on_tail('-v', '--version', 'Show version') do
     puts "barman_check#{BarmanCheck::VERSION}"
     exit
+  end
+
+  opts.on('--db', '--db-name=db', 'Specify name of PostgreSQL db') do |db|
+    options[:db_name] = db
   end
 
   opts.on('-f', '--formatter=f', 'Specify formatter') do |f|
@@ -48,18 +52,31 @@ OptionParser.new do |opts|
   end
 
   opts.on('--bc', '--backup-count=bc', 'Specify required number of backups') do |bc|
-    options[:thresholds][:bu_count] = bc
+    options[:thresholds][:bu_count] = bc.to_i
   end
 
   opts.on('--ba', '--backup-age=ba', 'Specify minimum backup age in hours') do |ba|
-    options[:thresholds][:bu_age] = ba
+    options[:thresholds][:bu_age] = ba.to_i
   end
 
 end.parse!
 
-#how do I read in 2 files?
-check_data = ARGF.read.chomp
+# if a dbname is provided then it will make actual barman check and barman list calls" 
+if options[:db_name].length > 0
+  check_data_string = `barman check #{options[:db_name]}`
+  check_data= check_data_string.split(/\n/).map(&:strip)
+  list_data_string = `barman list-backup main`
+  list_data= list_data_string.split(/\n/).map(&:strip)
+else # no dbname so we are in test mode
+  # read cat of test file containing barman output results
+  barman_output_data = ARGF.read.chomp
+  # check command results delimited from list command results by a line with the string
+  a, b = barman_output_data.split("FILE_DELIMITER\n")
+  check_data= a.split(/\n/).map(&:strip)
+  list_data =b.split(/\n/).map(&:strip)
+end
 
 print barman_check = BarmanCheck.run(options[:formatter],
                                                   options[:thresholds],
                                                   check_data, list_data)
+                                                

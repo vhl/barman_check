@@ -1,0 +1,7 @@
+Server main:
+	ssh: FAILED (return code: 255)
+	PostgreSQL: FAILED
+	directories: OK
+	retention policy settings: OK
+	compression settings: OK
+	minimum redundancy requirements: FAILED (have 0 backups, expected at least 1)

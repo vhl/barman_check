@@ -20,7 +20,10 @@
 module BarmanCheck
   module Checks
     class BarmanCheck
-      OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3 
+      OK = 0
+      WARNING = 1
+      CRITICAL = 2
+      UNKNOWN = 3
 
       def initialize(parser, thresholds)
         @parser = parser
@@ -38,11 +41,8 @@ module BarmanCheck
       end
 
       def backup_age_check
-        @parser.determine_backup_age
         latest_bu_age = @parser.latest_bu_age
-        puts "in backup_age_check latest_bu_age: #{latest_bu_age}"
-        puts "in backup_age_check threshold bu_age: #{@thresholds[:bu_age]}"
-        if latest_bu_age < @thresholds[:bu_age]
+        if latest_bu_age <= @thresholds[:bu_age]
           OK
         else
           CRITICAL
@@ -56,7 +56,24 @@ module BarmanCheck
           CRITICAL
         end
       end
-      
+
+      def bad_status_critical?
+        bad_status_check == CRITICAL
+      end
+
+      def backup_file_count_critical?
+        backup_file_count_check == CRITICAL
+      end
+
+      def backup_age_check_critical?
+        # only check backup age if the most recent one is there
+        recent_backup_failed_check == CRITICAL || backup_age_check == CRITICAL
+      end
+
+      def recent_backup_failed?
+        recent_backup_failed_check == CRITICAL
+      end
+
       def backup_growth_check
         if @parser.backups_growing
           OK
@@ -64,18 +81,35 @@ module BarmanCheck
           CRITICAL
         end
       end
-      
+
       def recent_backup_failed_check
         if @parser.recent_backup_failed
           CRITICAL
         else
           OK
         end
-      end 
-      
+      end
+
+      def backups?
+        @parser.num_backups > 0
+      end
+
+      def backup_age_ok?
+        @parser.latest_bu_age <= @thresholds[:bu_age]
+      end
+
+      def backup_growth_ok?
+        @parser.backups_growing
+      end
+
+      def backup_count_low?
+        backup_file_count_check > OK
+      end
     end
   end
 end
+
+# rubocop:disable all
 #require 'barman_check/parser'
 #db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
 #            "archive_mode: OK ",
@@ -83,7 +117,7 @@ end
 #            "continuous archiving: OK ", 
 #            "directories: OK ",
 #            "retention policy settings: OK ",
-#            "backup maximum age: OK (interval provided: 1 day, latest backup age: 11 hours, 48 minutes) ",
+#            "backup maximum age: OK (interval provided: 1 day, latest backup age: 23 hours, 48 minutes) ",
 #            "compression settings: OK ",
 #            "minimum redundancy requirements: OK (have 3 backups, expected at least 1)"]
 #db_list = ["main 20160201T000001 - Mon Feb  1 22:55:50 2016 - Size: 28.2 GiB - WAL Size: 33.3 MiB",
@@ -110,3 +144,15 @@ end
 #puts " Backup file count check : #{barman_check.backup_file_count_check} "
 #puts " Backup growth check : #{barman_check.backup_growth_check} "
 #puts " Backup age check : #{barman_check.backup_age_check} "
+#
+#case where the most recent backup failed
+#db_list = ["main 20160201T000001 - FAILED",
+#           "main 20160118T000001 - Mon Jan 18 00:00:43 2016 - Size: 27.9 GiB - WAL Size: 102.3 MiB",
+#           "main 20160117T000002 - Sun Jan 17 00:00:36 2016 - Size: 27.0 GiB - WAL Size: 68.7 MiB"]
+#parser = BarmanCheck::Parser.new(db_check, db_list)
+#puts " parser results latest backup age: #{parser.latest_bu_age}"
+#thresholds = { :bu_count => 3, :bu_age => 25 }
+#barman_check = BarmanCheck::Checks::BarmanCheck.new(parser,thresholds)
+#puts " recent backup failed: #{barman_check.recent_backup_failed_check}"
+#puts " have backups?: #{barman_check.have_backups?}"
+# rubocop:enable all
