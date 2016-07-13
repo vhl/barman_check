@@ -32,8 +32,10 @@ options = {
   thresholds: {
     bu_count: 3,
     bu_age: 25
-  }
+  },
+  formatter_options: { tags: ['testing'] }
 }
+# Currently it has not been defined how the tags on Datadog will be setup.
 
 OptionParser.new do |opts|
   opts.banner = 'Usage: barman_check [options]'
@@ -59,9 +61,14 @@ OptionParser.new do |opts|
     options[:thresholds][:bu_age] = ba.to_i
   end
 
+  opts.on('--tg', '--tags=[tag_1,tag_2]', Array, 'Specify tags to be used in Datadog') do |list|
+    raise ArgumentError, "Specify tags to be used in Datadog" if list.empty?
+    options[:formatter_options][:tags] = list
+  end
+
 end.parse!
 
-# if a dbname is provided then it will make actual barman check and barman list calls" 
+# if a dbname is provided then it will make actual barman check and barman list calls"
 if options[:db_name].length > 0
   check_data_string = `barman check #{options[:db_name]}`
   check_data= check_data_string.split(/\n/).map(&:strip)
@@ -77,6 +84,8 @@ else # no dbname so we are in test mode
 end
 
 print barman_check = BarmanCheck.run(options[:formatter],
-                                                  options[:thresholds],
-                                                  check_data, list_data)
-                                                
+                                     options[:thresholds],
+                                     check_data,
+                                     list_data,
+                                     options[:formatter_options])
+

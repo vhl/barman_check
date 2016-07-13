@@ -77,7 +77,7 @@ describe BarmanCheck::Formatters::BarmanCheckMk::BackupStatus do
         allow(barman_check).to receive(:backup_file_count_critical?).and_return(false)
         allow(barman_check).to receive(:backup_age_ok?).and_return(true)
         allow(barman_check).to receive(:backup_age_check_critical?).and_return(false)
-        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::Checks::BarmanCheck::OK)
+        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::OK)
         allow(barman_check).to receive(:bad_status_critical?).and_return(false)
         expect(backup_status.to_s).to eql("0 Barman_testdb_status - OK backups=3 backup_age=OK\n")
       end
@@ -95,7 +95,7 @@ describe BarmanCheck::Formatters::BarmanCheckMk::BackupStatus do
         allow(barman_check).to receive(:backup_file_count_critical?).and_return(false)
         allow(barman_check).to receive(:backup_age_ok?).and_return(true)
         allow(barman_check).to receive(:backup_age_check_critical?).and_return(false)
-        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::Checks::BarmanCheck::OK)
+        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::OK)
         allow(barman_check).to receive(:bad_status_critical?).and_return(false)
         expect(backup_status.to_s).to eql("1 Barman_testdb_status - WARNING expected 3 backups found 2 backup_age=OK\n")
       end
@@ -114,7 +114,7 @@ describe BarmanCheck::Formatters::BarmanCheckMk::BackupStatus do
         allow(barman_check).to receive(:backup_file_count_critical?).and_return(false)
         allow(barman_check).to receive(:backup_age_ok?).and_return(false)
         allow(barman_check).to receive(:backup_age_check_critical?).and_return(true)
-        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::Checks::BarmanCheck::CRITICAL)
+        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::CRITICAL)
         allow(barman_check).to receive(:bad_status_critical?).and_return(false)
         expect(backup_status.to_s).to eql("2 Barman_testdb_status - CRITICAL backups=3 backup_age=30\n")
       end
@@ -133,7 +133,7 @@ describe BarmanCheck::Formatters::BarmanCheckMk::BackupStatus do
         allow(barman_check).to receive(:backup_file_count_critical?).and_return(false)
         allow(barman_check).to receive(:backup_age_ok?).and_return(true)
         allow(barman_check).to receive(:backup_age_check_critical?).and_return(false)
-        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::Checks::BarmanCheck::OK)
+        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::OK)
         allow(barman_check).to receive(:bad_status_critical?).and_return(false)
         expect(backup_status.to_s).to eql("2 Barman_testdb_status - CRITICAL backups=3 backup_age=latest backup failed\n")
       end
@@ -165,7 +165,7 @@ describe BarmanCheck::Formatters::BarmanCheckMk::BackupStatus do
         allow(barman_check).to receive(:backup_file_count_critical?).and_return(false)
         allow(barman_check).to receive(:backup_age_ok?).and_return(true)
         allow(barman_check).to receive(:backup_age_check_critical?).and_return(false)
-        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::Checks::BarmanCheck::OK)
+        allow(barman_check).to receive(:backup_age_check).and_return(BarmanCheck::OK)
         allow(barman_check).to receive(:bad_status_critical?).and_return(true)
         expect(backup_status.to_s).to eql("2 Barman_testdb_status - CRITICAL ssh,PostgreSQL backups=3 backup_age=OK\n")
       end
@@ -199,7 +199,7 @@ describe BarmanCheck::Formatters::BarmanCheckMk::BackupGrowth do
       it 'returns string indicating that Barman_db_growth is OK' do
         allow(parser).to receive(:db_name) { 'testdb' }
         allow(barman_check).to receive(:backup_growth_ok?).and_return(true)
-        allow(barman_check).to receive(:backup_growth_check).and_return(BarmanCheck::Checks::BarmanCheck::OK)
+        allow(barman_check).to receive(:backup_growth_check).and_return(BarmanCheck::OK)
         expect(backup_growth.to_s).to eql('0 Barman_testdb_growth - OK')
       end
     end
@@ -208,7 +208,7 @@ describe BarmanCheck::Formatters::BarmanCheckMk::BackupGrowth do
       it 'returns string indicating that Barman_db_growth has bad growth trend' do
         allow(parser).to receive(:db_name) { 'testdb' }
         allow(barman_check).to receive(:backup_growth_ok?).and_return(false)
-        allow(barman_check).to receive(:backup_growth_check).and_return(BarmanCheck::Checks::BarmanCheck::CRITICAL)
+        allow(barman_check).to receive(:backup_growth_check).and_return(BarmanCheck::CRITICAL)
         expect(backup_growth.to_s).to eql('2 Barman_testdb_growth - CRITICAL bad growth trend')
       end
     end

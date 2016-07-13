@@ -17,24 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'barman_check/checks/barman_check'
+require_relative './base'
 
 module BarmanCheck
-  OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3
   module Formatters
-    class BarmanCheckMk
-      attr_reader :parser, :thresholds
-      STATUS_LOOKUP = { 0 => 'OK', 1 => 'WARNING', 2 => 'CRITICAL' }.freeze
-
-      def initialize(parser, thresholds)
-        @parser = parser
-        @thresholds = thresholds
-      end
-
-      def barman_check
-        @barman_check ||= BarmanCheck::Checks::BarmanCheck.new(@parser, @thresholds)
-      end
-
+    class BarmanCheckMk < Base
       def backup_status
         @backup_status ||= BackupStatus.new(self, barman_check)
       end
@@ -96,7 +83,7 @@ module BarmanCheck
 
         def to_s
           final_status = status
-          "#{final_status} Barman_#{@parser.db_name}_status - #{STATUS_LOOKUP[final_status]} #{failed_statuses}#{[file_count_status, backup_age_status].join(' ')}\n"
+          "#{final_status} Barman_#{@parser.db_name}_status - #{BarmanCheck::STATUS_LOOKUP[final_status]} #{failed_statuses}#{[file_count_status, backup_age_status].join(' ')}\n"
         end
       end
 
@@ -108,7 +95,7 @@ module BarmanCheck
 
         def to_s
           growth_status = @barman_check.backup_growth_check
-          growth_report = "#{STATUS_LOOKUP[growth_status]}"
+          growth_report = "#{BarmanCheck::STATUS_LOOKUP[growth_status]}"
           growth_report << ' bad growth trend' unless @barman_check.backup_growth_ok?
           "#{growth_status} Barman_#{@parser.db_name}_growth - #{growth_report}"
         end
@@ -120,10 +107,10 @@ end
 #rubocop:disable all
 # TEST 1 everything OK
 # require 'barman_check/parser'
-# db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
+# db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ",
 #            "archive_mode: OK ",
 #            "archive_command:  OK ",
-#            "continuous archiving: OK ", 
+#            "continuous archiving: OK ",
 #            "directories: OK ",
 #            "retention policy settings: OK ",
 #            "backup maximum age: OK (interval provided: 1 day, latest backup age: 11 hours, 48 minutes) ",
@@ -158,10 +145,10 @@ end
 #check_mk.barman_check
 #puts "Barman check results: \n#{check_mk.output}"
 # TEST 4 case where we have failed statuses but everything else is OK
-#db_check = ["Server main:", "ssh: FAILED ", "PostgreSQL: FAILED ", 
+#db_check = ["Server main:", "ssh: FAILED ", "PostgreSQL: FAILED ",
 #            "archive_mode: OK ",
 #            "archive_command:  OK ",
-#            "continuous archiving: OK ", 
+#            "continuous archiving: OK ",
 #            "directories: OK ",
 #            "retention policy settings: OK ",
 #            "backup maximum age: OK (interval provided: 1 day, latest backup age: 11 hours, 48 minutes) ",

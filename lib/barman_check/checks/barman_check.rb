@@ -20,11 +20,6 @@
 module BarmanCheck
   module Checks
     class BarmanCheck
-      OK = 0
-      WARNING = 1
-      CRITICAL = 2
-      UNKNOWN = 3
-
       def initialize(parser, thresholds)
         @parser = parser
         @thresholds = thresholds
@@ -33,60 +28,60 @@ module BarmanCheck
       def backup_file_count_check
         num_backups = @parser.num_backups
         if num_backups >= @thresholds[:bu_count]
-          OK
+          ::BarmanCheck::OK
         elsif num_backups >= 1
-          WARNING
-        else CRITICAL
+          ::BarmanCheck::WARNING
+        else ::BarmanCheck::CRITICAL
         end
       end
 
       def backup_age_check
         latest_bu_age = @parser.latest_bu_age
         if latest_bu_age <= @thresholds[:bu_age]
-          OK
+          ::BarmanCheck::OK
         else
-          CRITICAL
+          ::BarmanCheck::CRITICAL
         end
       end
 
       def bad_status_check
         if @parser.bad_statuses.length == 0
-          OK
+          ::BarmanCheck::OK
         else
-          CRITICAL
+          ::BarmanCheck::CRITICAL
         end
       end
 
       def bad_status_critical?
-        bad_status_check == CRITICAL
+        bad_status_check == ::BarmanCheck::CRITICAL
       end
 
       def backup_file_count_critical?
-        backup_file_count_check == CRITICAL
+        backup_file_count_check == ::BarmanCheck::CRITICAL
       end
 
       def backup_age_check_critical?
         # only check backup age if the most recent one is there
-        recent_backup_failed_check == CRITICAL || backup_age_check == CRITICAL
+        recent_backup_failed_check == ::BarmanCheck::CRITICAL || backup_age_check == ::BarmanCheck::CRITICAL
       end
 
       def recent_backup_failed?
-        recent_backup_failed_check == CRITICAL
+        recent_backup_failed_check == ::BarmanCheck::CRITICAL
       end
 
       def backup_growth_check
         if @parser.backups_growing
-          OK
+          ::BarmanCheck::OK
         else
-          CRITICAL
+          ::BarmanCheck::CRITICAL
         end
       end
 
       def recent_backup_failed_check
         if @parser.recent_backup_failed
-          CRITICAL
+          ::BarmanCheck::CRITICAL
         else
-          OK
+          ::BarmanCheck::OK
         end
       end
 
@@ -103,7 +98,7 @@ module BarmanCheck
       end
 
       def backup_count_low?
-        backup_file_count_check > OK
+        backup_file_count_check > ::BarmanCheck::OK
       end
     end
   end
@@ -111,10 +106,10 @@ end
 
 # rubocop:disable all
 #require 'barman_check/parser'
-#db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ", 
+#db_check = ["Server main:", "ssh: OK ", "PostgreSQL: OK ",
 #            "archive_mode: OK ",
 #            "archive_command:  OK ",
-#            "continuous archiving: OK ", 
+#            "continuous archiving: OK ",
 #            "directories: OK ",
 #            "retention policy settings: OK ",
 #            "backup maximum age: OK (interval provided: 1 day, latest backup age: 23 hours, 48 minutes) ",

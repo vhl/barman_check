@@ -19,7 +19,7 @@ describe BarmanCheck::Checks::BarmanCheck do
           false from backup_file_count_critical?,
           false from backup_count_low?' do
         allow(parser).to receive(:num_backups) { 3 }
-        expect(barman_check.backup_file_count_check).to eq(BarmanCheck::OK)
+        expect(barman_check.backup_file_count_check).to eq(::BarmanCheck::OK)
         expect(barman_check.backup_file_count_critical?).to eq(false)
         expect(barman_check.backup_count_low?).to eq(false)
       end
@@ -31,7 +31,7 @@ describe BarmanCheck::Checks::BarmanCheck do
           true from backups?,
           true from backup_count_low?' do
         allow(parser).to receive(:num_backups) { 2 }
-        expect(barman_check.backup_file_count_check).to eq(BarmanCheck::WARNING)
+        expect(barman_check.backup_file_count_check).to eq(::BarmanCheck::WARNING)
         expect(barman_check.backup_file_count_critical?).to eq(false)
         expect(barman_check.backup_count_low?).to eq(true)
       end
@@ -43,7 +43,7 @@ describe BarmanCheck::Checks::BarmanCheck do
           false from backups?,
           true from backup_count_low' do
         allow(parser).to receive(:num_backups) { 0 }
-        expect(barman_check.backup_file_count_check).to eq(BarmanCheck::CRITICAL)
+        expect(barman_check.backup_file_count_check).to eq(::BarmanCheck::CRITICAL)
         expect(barman_check.backup_file_count_critical?).to eq(true)
         expect(barman_check.backups?).to eq(false)
         expect(barman_check.backup_count_low?).to eq(true)
@@ -56,7 +56,7 @@ describe BarmanCheck::Checks::BarmanCheck do
           true from backup_age_ok' do
         allow(parser).to receive(:latest_bu_age) { 12 }
         allow(parser).to receive(:recent_backup_failed) { false }
-        expect(barman_check.backup_age_check).to eq(BarmanCheck::OK)
+        expect(barman_check.backup_age_check).to eq(::BarmanCheck::OK)
         expect(barman_check.backup_age_check_critical?).to eql(false)
         expect(barman_check.backup_age_ok?).to eql(true)
       end
@@ -68,7 +68,7 @@ describe BarmanCheck::Checks::BarmanCheck do
           true from backup_age_ok' do
         allow(parser).to receive(:latest_bu_age) { 25 }
         allow(parser).to receive(:recent_backup_failed) { false }
-        expect(barman_check.backup_age_check).to eq(BarmanCheck::OK)
+        expect(barman_check.backup_age_check).to eq(::BarmanCheck::OK)
         expect(barman_check.backup_age_check_critical?).to eql(false)
         expect(barman_check.backup_age_ok?).to eql(true)
       end
@@ -80,7 +80,7 @@ describe BarmanCheck::Checks::BarmanCheck do
           false from backup_age_ok' do
         allow(parser).to receive(:latest_bu_age) { 26 }
         allow(parser).to receive(:recent_backup_failed) { false }
-        expect(barman_check.backup_age_check).to eq(BarmanCheck::CRITICAL)
+        expect(barman_check.backup_age_check).to eq(::BarmanCheck::CRITICAL)
         expect(barman_check.backup_age_check_critical?).to eql(true)
         expect(barman_check.backup_age_ok?).to eql(false)
       end
@@ -97,7 +97,7 @@ describe BarmanCheck::Checks::BarmanCheck do
       it 'returns 0 (OK) from recent_backup_failed_check,
           false from recent_backup_failed?' do
         allow(parser).to receive(:recent_backup_failed) { false }
-        expect(barman_check.recent_backup_failed_check).to eq(BarmanCheck::OK)
+        expect(barman_check.recent_backup_failed_check).to eq(::BarmanCheck::OK)
         expect(barman_check.recent_backup_failed?).to eql(false)
       end
     end
@@ -105,7 +105,7 @@ describe BarmanCheck::Checks::BarmanCheck do
       it 'returns 2 (CRITICAL) from recent_backup_failed_check,
           true from recent_backup_failed?' do
         allow(parser).to receive(:recent_backup_failed) { true }
-        expect(barman_check.recent_backup_failed_check).to eq(BarmanCheck::CRITICAL)
+        expect(barman_check.recent_backup_failed_check).to eq(::BarmanCheck::CRITICAL)
         expect(barman_check.recent_backup_failed?).to eql(true)
       end
     end
@@ -114,7 +114,7 @@ describe BarmanCheck::Checks::BarmanCheck do
       it 'returns 0 (OK) from bad status check,
           false from bad_status_critical?' do
         allow(parser).to receive(:bad_statuses) { [] }
-        expect(barman_check.bad_status_check).to eq(BarmanCheck::OK)
+        expect(barman_check.bad_status_check).to eq(::BarmanCheck::OK)
         expect(barman_check.bad_status_critical?).to eql(false)
       end
     end
@@ -123,7 +123,7 @@ describe BarmanCheck::Checks::BarmanCheck do
       it 'returns 2 (CRITICAL) from bad status check,
           true from  bad_status_critical?' do
         allow(parser).to receive(:bad_statuses) { ['ssh', 'PostgreSQL'] }
-        expect(barman_check.bad_status_check).to eq(BarmanCheck::CRITICAL)
+        expect(barman_check.bad_status_check).to eq(::BarmanCheck::CRITICAL)
         expect(barman_check.bad_status_critical?).to eql(true)
       end
     end
@@ -132,7 +132,7 @@ describe BarmanCheck::Checks::BarmanCheck do
       it 'returns 0 (OK) from backup growth check,
           true from backup_growth_ok?' do
         allow(parser).to receive(:backups_growing) { true }
-        expect(barman_check.backup_growth_check).to eq(BarmanCheck::OK)
+        expect(barman_check.backup_growth_check).to eq(::BarmanCheck::OK)
         expect(barman_check.backup_growth_ok?).to eql(true)
       end
     end
@@ -141,7 +141,7 @@ describe BarmanCheck::Checks::BarmanCheck do
       it 'returns 2 (CRITICAL) from backup growth check,
           false from backup_growth_ok?' do
         allow(parser).to receive(:backups_growing) { false }
-        expect(barman_check.backup_growth_check).to eq(BarmanCheck::CRITICAL)
+        expect(barman_check.backup_growth_check).to eq(::BarmanCheck::CRITICAL)
         expect(barman_check.backup_growth_ok?).to eql(false)
       end
     end

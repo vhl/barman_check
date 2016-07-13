@@ -22,9 +22,15 @@ require 'barman_check/parser'
 require 'barman_check/formatters/barman_check_mk'
 
 module BarmanCheck
-  def self.run(formatter_name, thresholds, status_data, list_data)
+  OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3
+  STATUS_LOOKUP = { OK => 'OK',
+                    WARNING => 'WARNING',
+                    CRITICAL => 'CRITICAL',
+                    UNKNOWN => 'UNKNOWN' }.freeze
+
+  def self.run(formatter_name, thresholds, status_data, list_data, formatter_options = {})
     parser = BarmanCheck::Parser.new(status_data, list_data)
-    formatter = formatter_class(formatter_name).new(parser, thresholds)
+    formatter = formatter_class(formatter_name).new(parser, thresholds, formatter_options)
     formatter.output
   end
 
