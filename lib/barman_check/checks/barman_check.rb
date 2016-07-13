@@ -100,6 +100,17 @@ module BarmanCheck
       def backup_count_low?
         backup_file_count_check > ::BarmanCheck::OK
       end
+
+      def backup_status
+        if backup_file_count_critical? || bad_status_critical? ||
+           backup_age_check_critical? || recent_backup_failed?
+          ::BarmanCheck::CRITICAL
+        elsif backup_count_low?
+          ::BarmanCheck::WARNING
+        else
+          ::BarmanCheck::OK
+        end
+      end
     end
   end
 end

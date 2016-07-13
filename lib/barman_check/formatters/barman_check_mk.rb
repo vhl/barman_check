@@ -70,19 +70,8 @@ module BarmanCheck
           end
         end
 
-        def status
-          if @barman_check.backup_file_count_critical? || @barman_check.bad_status_critical? ||
-             @barman_check.backup_age_check_critical? || @barman_check.recent_backup_failed?
-            BarmanCheck::CRITICAL
-          elsif @barman_check.backup_count_low?
-            BarmanCheck::WARNING
-          else
-            BarmanCheck::OK
-          end
-        end
-
         def to_s
-          final_status = status
+          final_status = @barman_check.backup_status
           "#{final_status} Barman_#{@parser.db_name}_status - #{BarmanCheck::STATUS_LOOKUP[final_status]} #{failed_statuses}#{[file_count_status, backup_age_status].join(' ')}\n"
         end
       end

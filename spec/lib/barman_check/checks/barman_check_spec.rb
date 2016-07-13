@@ -146,4 +146,43 @@ describe BarmanCheck::Checks::BarmanCheck do
       end
     end
   end
+
+  describe 'backup_status' do
+    before do
+      allow(parser).to receive(:num_backups) { thresholds[:bu_count] }
+      allow(parser).to receive(:latest_bu_age) { thresholds[:bu_age] }
+      allow(parser).to receive(:recent_backup_failed) { false }
+      allow(parser).to receive(:recent_backup_failed) { false }
+      allow(parser).to receive(:bad_statuses) { [] }
+    end
+
+    it 'returns CRITICAL if backup_file_count is critical' do
+      allow(parser).to receive(:num_backups) { 0 }
+      expect(barman_check.backup_status).to eql(::BarmanCheck::CRITICAL)
+    end
+
+    it 'returns CRITICAL if bad_status is critical' do
+      allow(parser).to receive(:bad_statuses) { ['ssh'] }
+      expect(barman_check.backup_status).to eql(::BarmanCheck::CRITICAL)
+    end
+
+    it 'returns CRITICAL if backup_age_check is critical' do
+      allow(parser).to receive(:latest_bu_age) { thresholds[:bu_age] + 1 }
+      expect(barman_check.backup_status).to eql(::BarmanCheck::CRITICAL)
+    end
+
+    it 'returns CRITICAL if recent_backup failed' do
+      allow(parser).to receive(:recent_backup_failed) { true }
+      expect(barman_check.backup_status).to eql(::BarmanCheck::CRITICAL)
+    end
+
+    it 'returns WARNING if backup_count is low' do
+      allow(parser).to receive(:num_backups) { thresholds[:bu_count] - 1 }
+      expect(barman_check.backup_status).to eql(::BarmanCheck::WARNING)
+    end
+
+    it 'returns OK if all backup checks are ok' do
+      expect(barman_check.backup_status).to eql(::BarmanCheck::OK)
+    end
+  end
 end
