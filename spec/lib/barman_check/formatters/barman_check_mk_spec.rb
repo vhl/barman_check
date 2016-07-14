@@ -63,7 +63,7 @@ describe BarmanCheck::Formatters::BarmanCheckMk::BackupStatus do
       allow(barman_check_mk).to receive(:parser).and_return(parser)
       allow(barman_check_mk).to receive(:thresholds).and_return(bu_count: 3, bu_age: 25)
     end
-#moved
+
     describe 'backup status returns all OK' do
       it 'returns string indicating that Barman_db_status is all OK' do
         allow(parser).to receive(:num_backups) { 3 }

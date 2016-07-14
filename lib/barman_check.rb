@@ -20,6 +20,7 @@
 require 'barman_check/version'
 require 'barman_check/parser'
 require 'barman_check/formatters/barman_check_mk'
+require 'barman_check/formatters/dog_statsd'
 
 module BarmanCheck
   OK, WARNING, CRITICAL, UNKNOWN = 0, 1, 2, 3
